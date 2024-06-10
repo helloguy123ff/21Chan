@@ -93,50 +93,65 @@ form button:hover {
         <input type="file" id="imagem" accept="image/*" required>
         <button type="submit">Postar</button>
     </form>
-    <script>document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoria = urlParams.get('categoria');
 
-    if (categoria) {
-        document.getElementById('categoriaTitulo').innerText = categoria.charAt(0).toUpperCase() + categoria.slice(1);
-        carregarPosts(categoria);
-    }
+   
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoria = urlParams.get('categoria');
+            document.getElementById('categoryName').textContent = categoria.charAt(0).toUpperCase() + categoria.slice(1);
 
-    document.getElementById('novoPostForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        criarNovoPost(categoria);
-    });
-});
+            carregarPosts(categoria);
 
-function carregarPosts(categoria) {
-    let postsContainer = document.getElementById('postsContainer');
-    let posts = JSON.parse(localStorage.getItem(categoria)) || [];
-    postsContainer.innerHTML = '';
-    posts.forEach(post => {
-        let postElement = document.createElement('div');
-        postElement.className = 'post';
-        postElement.innerHTML = `
-            <h3>${post.titulo}</h3>
-            <p>${post.conteudo}</p>
-            <img src="${post.imagem}" alt="Imagem do post">
-        `;
-        postsContainer.appendChild(postElement);
-    });
-}
+            document.getElementById('novoPostForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                criarNovoPost(categoria);
+            });
+        });
 
-function criarNovoPost(categoria) {
-    let titulo = document.getElementById('titulo').value;
-    let conteudo = document.getElementById('conteudo').value;
-    let imagemInput = document.getElementById('imagem');
-    let imagem = URL.createObjectURL(imagemInput.files[0]);
+        function carregarPosts(categoria) {
+            const postsContainer = document.getElementById('postsContainer');
+            const posts = JSON.parse(localStorage.getItem(categoria)) || [];
+            postsContainer.innerHTML = '';
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <h3>${post.titulo}</h3>
+                    <p>${post.conteudo}</p>
+                    ${post.imagem ? `<img src="${post.imagem}" alt="Imagem do comentário">` : ''}
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
 
-    let posts = JSON.parse(localStorage.getItem(categoria)) || [];
-    posts.push({ titulo, conteudo, imagem });
-    localStorage.setItem(categoria, JSON.stringify(posts));
+        function criarNovoPost(categoria) {
+            const titulo = document.getElementById('titulo').value;
+            const conteudo = document.getElementById('conteudo').value;
+            const imagemInput = document.getElementById('imagem');
+            let imagem = '';
 
-    carregarPosts(categoria);
-    document.getElementById('novoPostForm').reset();
-}
-</script>
+            if (imagemInput.files && imagemInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagem = e.target.result;
+                    salvarPost(categoria, titulo, conteudo, imagem);
+                }
+                reader.readAsDataURL(imagemInput.files[0]);
+            } else {
+                salvarPost(categoria, titulo, conteudo, '');
+            }
+        }
+
+        function salvarPost(categoria, titulo, conteudo, imagem) {
+            const posts = JSON.parse(localStorage.getItem(categoria)) || [];
+            posts.push({ titulo, conteudo, imagem });
+            localStorage.setItem(categoria, JSON.stringify(posts));
+            carregarPosts(categoria);
+            document.getElementById('novoPostForm').reset();
+        }
+    </script>
+
+
 </body>
 </html>
